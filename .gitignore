@@ -5,3 +5,5 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
+/airport_graph/__pycache__
+/airport_graph/*.py
