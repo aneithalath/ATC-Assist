@@ -1,9 +1,10 @@
 /airport_data/kphx.geojson
 /airport_data/airport_layout.py
-/flight_data
+/flight_data/aircraft_data
+/flight_data/airspace_data
+/flight_data/opensky_filter.py
 venv/
 __pycache__/
 *.pyc
 .DS_Store
 /airport_graph/__pycache__
-/airport_graph/*.py
