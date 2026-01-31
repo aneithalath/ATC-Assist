@@ -2,9 +2,10 @@
 /airport_data/airport_layout.py
 /flight_data/aircraft_data
 /flight_data/airspace_data
+/flight_data/useless_data
 /flight_data/opensky_filter.py
+/airport_graph/__pycache__
 venv/
 __pycache__/
 *.pyc
 .DS_Store
-/airport_graph/__pycache__
