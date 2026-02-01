@@ -20,7 +20,7 @@ def load_data():
     aircraft_path = os.path.join(project_root, 'flight_data', 'aircraft_data', 'aircraft_data.csv')
     aircraft_df = pd.read_csv(aircraft_path)
     aircraft_df['FAA_Designator'] = aircraft_df['FAA_Designator'].astype(str)
-    aircraft_dim_map = aircraft_df.set_index('FAA_Designator')[['Wingspan_ft_with_winglets_sharklets', 'Length_ft']].to_dict('index')
+    aircraft_dim_map = aircraft_df.set_index('FAA_Designator')[['Wingspan_ft_with_winglets_sharklets', 'Wingspan_ft_without_winglets_sharklets', 'Length_ft']].to_dict('index')
     return df, icao24_map, aircraft_dim_map
 
 def enrich(df, icao24_map, aircraft_dim_map):
@@ -33,7 +33,10 @@ def enrich(df, icao24_map, aircraft_dim_map):
     for model in df['aircraft_model']:
         dims = aircraft_dim_map.get(model)
         if dims:
+            # Use with_winglets if present, else without_winglets, else NaN
             ws_ft = dims['Wingspan_ft_with_winglets_sharklets']
+            if pd.isnull(ws_ft):
+                ws_ft = dims.get('Wingspan_ft_without_winglets_sharklets', np.nan)
             len_ft = dims['Length_ft']
             ws_m = ws_ft * 0.3048 if pd.notnull(ws_ft) else np.nan
             len_m = len_ft * 0.3048 if pd.notnull(len_ft) else np.nan
