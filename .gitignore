@@ -8,3 +8,4 @@ __pycache__/
 /operations_data
 /weather_data
 /scripts/__pycache__/
+/logs/feature.csv
