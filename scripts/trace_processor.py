@@ -94,6 +94,16 @@ async def process_traces(ops: List[Dict[str,Any]], logger) -> Dict[str,Any]:
                             continue
                     else:
                         continue
+                    # Compute vertical rate
+                    if last_valid is not None and agl is not None:
+                        prev_t, prev_lat, prev_lon, prev_agl = last_valid
+                        time_diff = t_rel - prev_t
+                        if time_diff > 0 and agl is not None and prev_agl is not None:
+                            vr = (agl - prev_agl) * 60 / time_diff
+                        else:
+                            vr = None
+                    else:
+                        vr = None
                     # Interpolation for large gaps
                     if last_valid is not None:
                         prev_t, prev_lat, prev_lon, prev_agl = last_valid
@@ -107,25 +117,32 @@ async def process_traces(ops: List[Dict[str,Any]], logger) -> Dict[str,Any]:
                                 interp_lat = prev_lat + frac * (lat - prev_lat)
                                 interp_lon = prev_lon + frac * (lon - prev_lon)
                                 interp_agl = prev_agl + frac * (agl - prev_agl)
+                                interp_vert_rate = (interp_agl - prev_agl) / (s*8) * 60 if interp_agl is not None and prev_agl is not None else None
                                 filtered.append({
                                     'icao': icao,
                                     'runway': runway,
                                     'timestamp': base_ts + prev_t + s*8,
+                                    'ac_type': op.get('ac_type', ''),
                                     'lat': interp_lat,
                                     'lon': interp_lon,
                                     'agl': interp_agl,
                                     'gs': gs,
-                                    'hdg': hdg
+                                    'hdg': hdg,
+                                    'operation': operation,
+                                    'vertical_rate_fpm': interp_vert_rate
                                 })
                     filtered.append({
                         'icao': icao,
                         'runway': runway,
+                        'operation': operation,
+                        'ac_type': op.get('ac_type', ''),
                         'timestamp': base_ts + t_rel,
                         'lat': lat,
                         'lon': lon,
                         'agl': agl,
                         'gs': gs,
-                        'hdg': hdg
+                        'hdg': hdg,
+                        'vertical_rate_fpm': vr
                     })
                     last_valid = (t_rel, lat, lon, agl)
                 if not filtered:
@@ -162,7 +179,33 @@ def get_prior_weather(weather_df, ts):
 
 def extract_features(states, runway_dict, weather_df):
     features = []
-    for s in states:
+    last_vr = None  # Track last known vertical rate
+    next_known_idx = 0  # For lookahead interpolation
+
+    # Precompute indices of known vertical rates
+    known_vr_indices = [i for i, s in enumerate(states) if s.get('vertical_rate_fpm') is not None]
+
+    for i, s in enumerate(states):
+        # Vertical rate handling
+        vr = s.get('vertical_rate_fpm')
+        if vr is None:
+            # Find next known vertical rate for interpolation
+            next_known_idx = next((idx for idx in known_vr_indices if idx > i), None)
+            if last_vr is not None and next_known_idx is not None:
+                # Linear interpolate
+                next_vr = states[next_known_idx]['vertical_rate_fpm']
+                steps = next_known_idx - i + 1
+                frac = 1 / steps
+                vr = last_vr + frac * (next_vr - last_vr)
+            elif last_vr is not None:
+                vr = last_vr  # forward fill
+            elif next_known_idx is not None:
+                vr = states[next_known_idx]['vertical_rate_fpm']  # backfill
+            else:
+                vr = None  # preserve value as unknown
+        else:
+            last_vr = vr
+
         # Find runway info
         rw = next((r for r in runway_dict if r['id'] == str(s['runway'])), None)
         # Find weather
@@ -185,22 +228,53 @@ def extract_features(states, runway_dict, weather_df):
             align_err = abs(float(s['hdg']) - rw_heading)
         else:
             align_err = None
+
         # Aircraft category (simple mapping)
-        ac_type = s.get('ac_type', '')
-        if ac_type.startswith('B7') or ac_type.startswith('B38'):
-            ac_cat = 'heavy'
-        elif ac_type.startswith('CRJ') or ac_type.startswith('E75'):
-            ac_cat = 'regional'
+        def classify_aircraft(icao_type: str) -> str:
+            if not isinstance(icao_type, str):
+                return "unknown"
+
+            t = icao_type.upper().strip()
+
+            # Heavies (widebody, long-haul)
+            if t.startswith(("B74", "B77", "B78", "A33", "A34", "A35", "A38")):
+                return "heavy_jet"
+
+            # Large narrowbody jets
+            if t.startswith(("B73", "A32", "A20", "A21")):
+                return "medium_jet"
+
+            # Regional jets
+            if t.startswith(("CRJ", "E17", "E19", "E70", "E75")):
+                return "regional_jet"
+
+            # Turboprops
+            if t.startswith(("DH", "AT", "Q4", "SF3", "PC")):
+                return "turboprop"
+
+            # Light GA props
+            if t.startswith(("C1", "C2", "C3", "PA", "BE")):
+                return "light_prop"
+
+            return "unknown"
+
+
+        ac_type = s.get('ac_type')
+
+        if isinstance(ac_type, str):
+            ac_cat = classify_aircraft(ac_type)
         else:
-            ac_cat = 'narrow'
+            ac_cat = "unknown"
+        
         features.append({
             'icao': s['icao'],
             'runway': s['runway'],
+            'operation': s.get('operation'),
             'timestamp': s['timestamp'],
             'distance_to_tower_nm': haversine_nm(s['lat'], s['lon'], TOWER_LAT, TOWER_LON),
             'altitude_agl_ft': s['agl'],
             'ground_speed_knots': s['gs'],
-            'vertical_rate_fpm': None,  # Not available in trace, placeholder
+            'vertical_rate_fpm': vr, 
             'heading_deg': s['hdg'],
             'wind_along_runway': wind_along,
             'wind_cross_runway': wind_cross,
@@ -210,7 +284,7 @@ def extract_features(states, runway_dict, weather_df):
             'weather_tmpf': w['tmpf'] if w else None,
             'weather_relh': w['relh'] if w else None,
             'weather_drct': w['drct'] if w else None,
-            'weather_sknt': w['sknt'] if w else None
+            'weather_sknt': w['sknt'] if w else None,
         })
     return features
 
