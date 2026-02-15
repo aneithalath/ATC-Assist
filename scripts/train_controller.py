@@ -112,7 +112,8 @@ def main():
         print("Full features saved to logs/feature.csv")
     print("Preparing runway label encoding...")
     # Runway assignment label (categorical)
-    RUNWAY_IDS = sorted(r['id'] for r in RUNWAYS)
+    # FIXED runway class space - ALWAYS 6 runways, even if not all present in training data
+    RUNWAY_IDS = ["07L", "07R", "25L", "25R", "26", "8"]
     runway2idx = {r: i for i, r in enumerate(RUNWAY_IDS)}
 
     print("Validating runway values in data...")
@@ -262,7 +263,9 @@ def main():
         def forward(self, x):
             return self.net(x)
 
-    model = FeedforwardNN(len(feature_cols), len(RUNWAY_IDS)).to(device)
+    # Explicitly set output dimension to match fixed runway class space
+    out_dim = len(RUNWAY_IDS)
+    model = FeedforwardNN(len(feature_cols), out_dim).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
 
@@ -324,6 +327,37 @@ def main():
 
     print(f"Model saved to {model_path}")
     logger.info(f"Model saved to {model_path}")
+    
+    # Export feature configuration for runtime
+    print("Saving feature configuration for runtime...")
+    feature_config = {
+        "feature_cols": feature_cols,
+        "medians": {col: float(df[col].median()) if pd.notna(df[col].median()) else 0.0 for col in feature_cols},
+        "allow_missing": list(ALLOW_MISSING),
+        "critical_columns": [col for col in feature_cols if col not in ALLOW_MISSING],
+        "label_map": runway2idx,
+        "confidence_threshold": 0.6,
+        "num_runways": len(RUNWAY_IDS),
+        "runway_ids": RUNWAY_IDS
+    }
+    config_path = os.path.join(models_dir, 'feature_config.json')
+    with open(config_path, 'w') as f:
+        json.dump(feature_config, f, indent=2)
+    logger.info(f"Feature configuration saved to {config_path}")
+    print(f"Feature configuration saved to {config_path}")
+    
+    # Save feature order for guaranteed runtime alignment
+    print("Saving feature order for runtime alignment...")
+    feature_order_config = {
+        "feature_cols": feature_cols,
+        "description": "Exact ordered list of feature column names used during training. Runtime MUST use this exact order."
+    }
+    feature_order_path = os.path.join(models_dir, 'feature_order.json')
+    with open(feature_order_path, 'w') as f:
+        json.dump(feature_order_config, f, indent=2)
+    logger.info(f"Feature order saved to {feature_order_path}")
+    print(f"Feature order saved to {feature_order_path}")
+    
     # Save a small CSV sample
     print("Saving ML sample to logs/ml_sample.csv...")
     sample = test_df.head(50)
