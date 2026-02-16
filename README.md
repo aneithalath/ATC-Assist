@@ -341,10 +341,6 @@ This will:
 - [ ] Reinforcement learning fine-tuning
 - [ ] Historical replay for backtesting
 
-## License
-
-Proprietary - Arizona Department of Aviation
-
 ## Support
 
 For issues or questions:
