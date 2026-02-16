@@ -1,0 +1,11 @@
+2026-02-15 00:43:49,662 INFO: Virtual environment activated.
+2026-02-15 00:43:49,662 INFO: --- FINAL TEST STARTED (2026-02-15 00:43:49) ---
+2026-02-15 00:43:52,890 INFO: Starting simulation mode (debug=True)...
+2026-02-15 00:44:29,138 INFO: SIMULATION PASS [PASS] | Total ticks: 36
+2026-02-15 00:44:29,139 INFO: Starting assistant mode (debug=False)...
+2026-02-15 00:44:40,182 INFO: ASSISTANT PASS [PASS] | Assistant mode ran without error.
+2026-02-15 00:44:41,662 INFO: Running evaluation on logs/ml_sample.csv...
+2026-02-15 00:44:41,717 INFO: EVAL SUMMARY: Accuracy=20.00%, Rejected HOLDs=45, Mean Confidence=0.864
+2026-02-15 00:44:41,717 INFO: EVALUATION FAIL [FAIL] | Accuracy below threshold.
+2026-02-15 00:44:41,717 INFO: --- FINAL TEST COMPLETE ---
+2026-02-15 00:44:41,717 INFO: Logs saved to logs\final_test.log
