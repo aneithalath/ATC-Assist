@@ -333,6 +333,16 @@ This will:
 - **No redundant I/O**: Config/model loaded once at startup, feature_order.json validated for alignment
 - **Parallelizable**: Per-aircraft processing is independent
 
+## Data Sources & Acknowledgments
+
+This project uses publicly accessible data from the following sources:
+
+- **Operations Data & Traces**: [samples.adsbexchange.com](https://samples.adsbexchange.com) (operations-ax-v2 and traces directories)
+- **Weather Data**: [Iowa Environmental Mesonet](https://mesonet.agron.iastate.edu/request/download.phtml?network=AZ_ASOS)
+- **Runway Information**: [AirNav - Phoenix Sky Harbor (KPHX)](https://www.airnav.com/airport/KPHX)
+
+All data was obtained from open, publicly accessible sources for research and development purposes.
+
 ## Future Enhancements
 
 - [ ] Web UI integration for visualization
@@ -340,10 +350,3 @@ This will:
 - [ ] Multi-airport support
 - [ ] Reinforcement learning fine-tuning
 - [ ] Historical replay for backtesting
-
-## Support
-
-For issues or questions:
-1. Check logs: `logs/atc_runtime.json`
-2. Run with `--debug` flag
-3. Review evaluation results: `evaluation_results.json`
