@@ -14,7 +14,29 @@ from controller_engine import ControllerEngine
 
 
 class SimulationRunner:
-    """Runner for the ATC simulation."""
+    def export_tick_json(self, timestamp=None, output_file="tick_input.json", include_decision=False):
+        """Generate JSON payload for one tick for FastAPI /tick endpoint."""
+        import time
+        ts = timestamp or time.time()
+        aircraft = self._generate_test_aircraft(ts)
+        weather = self._generate_test_weather()
+        payload = {
+            "timestamp": ts,
+            "aircraft_list": aircraft,
+            "weather": weather,
+            "runway_info": None
+        }
+        if include_decision:
+            # Optionally include engine decision for this tick
+            result = self.engine.process_tick(
+                timestamp=ts,
+                aircraft_list=aircraft,
+                weather=weather
+            )
+            payload["engine_decision"] = result
+        with open(output_file, "w") as f:
+            json.dump(payload, f, indent=2, default=str)
+        print(f"[OK] Exported tick JSON to {output_file}")
     
     def __init__(self, mode: str = "simulation", debug: bool = False):
         """Initialize runner."""
@@ -301,17 +323,32 @@ def main():
         default='decisions.json',
         help='Output file for batch results'
     )
+    parser.add_argument(
+        '--export-tick',
+        action='store_true',
+        help='Export one synthetic tick JSON for FastAPI'
+    )
+    parser.add_argument(
+        '--include-decision',
+        action='store_true',
+        help='Include engine decision inside exported tick JSON'
+    )    
     
     args = parser.parse_args()
     
     try:
         runner = SimulationRunner(mode=args.mode, debug=args.debug)
         
-        if args.batch:
-            # Batch mode
+        if args.export_tick:
+            runner.export_tick_json(
+                output_file="logs/tick_input.json",
+                include_decision=args.include_decision
+            )
+
+        elif args.batch:
             runner.run_batch(args.batch, args.output)
+
         else:
-            # Interactive mode
             runner.run_interactive(duration_sec=args.duration)
     
     except Exception as e:

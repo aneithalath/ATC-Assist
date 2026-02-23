@@ -351,6 +351,32 @@ class ControllerEngine:
         from datetime import datetime, timezone
         return datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
     
+    def reset(self):
+        """Reset engine state while preserving model and config.
+        
+        This reinitializes:
+        - runway_manager
+        - state_tracker
+        - safety_validator
+        - logger
+        
+        Preserves:
+        - loaded model
+        - config
+        - mode
+        """
+        # Reinitialize components
+        self.runway_manager = RunwayManager()
+        self.state_tracker = StateTracker()
+        self.safety_validator = SafetyValidator()
+        self.logger = RuntimeLogger(output_dir=str(self.logs_dir), debug=self.debug)
+        
+        # Reinitialize runways
+        self.runway_manager.initialize_runways(self.config['runway_ids'])
+        
+        if self.debug:
+            print(f"[OK] Engine reset complete")
+    
     def save_logs(self):
         """Save all logged events."""
         self.logger.save_to_file()

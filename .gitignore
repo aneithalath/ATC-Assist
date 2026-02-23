@@ -2,9 +2,42 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
+# Ignore all CSVs and logs
 operations_data/*.csv
 weather_data/*.csv
-scripts/__pycache__/
-logs/feature.csv
+logs/*.csv
 logs/*.json
 logs/*.txt
+logs/responses/
+# Ignore model binaries and configs
+models/*.pt
+models/*.json
+# Ignore responses
+logs/responses/*.json
+# Ignore test logs
+final_test.log
+# Ignore site-packages and Python build artifacts
+venv/Lib/site-packages/
+# Ignore environment and editor files
+.env
+.vscode/
+# Ignore Jupyter and notebook checkpoints
+*.ipynb
+.ipynb_checkpoints/
+# Ignore all __pycache__ folders recursively
+**/__pycache__/
+# Ignore temporary files
+*.tmp
+*.log
+# Ignore compiled Python files
+*.pyo
+*.pyd
+# Ignore OS-specific files
+Thumbs.db
+ehthumbs.db
+# Ignore backup files
+*.bak
+*.swp
+*.swo
+# Ignore test outputs
+test_output/
