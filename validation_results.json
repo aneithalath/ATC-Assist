@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-03-03T21:22:24.732343",
+  "duration_seconds": 1043.800308,
+  "results": {
+    "Engine Determinism": {
+      "status": "PASS",
+      "tests_run": 4,
+      "passed": 4,
+      "failed": 0,
+      "errors": 0,
+      "success": true
+    },
+    "State Persistence": {
+      "status": "FAIL",
+      "tests_run": 5,
+      "passed": 4,
+      "failed": 1,
+      "errors": 0,
+      "success": false
+    },
+    "API/CLI Parity": {
+      "status": "PASS",
+      "tests_run": 8,
+      "passed": 8,
+      "failed": 0,
+      "errors": 0,
+      "success": true
+    },
+    "Concurrency Integrity": {
+      "status": "PASS",
+      "tests_run": 6,
+      "passed": 6,
+      "failed": 0,
+      "errors": 0,
+      "success": true
+    },
+    "Reset Behavior": {
+      "status": "PASS",
+      "tests_run": 8,
+      "passed": 8,
+      "failed": 0,
+      "errors": 0,
+      "success": true
+    },
+    "Logging Integrity": {
+      "status": "FAIL",
+      "tests_run": 9,
+      "passed": 8,
+      "failed": 1,
+      "errors": 0,
+      "success": false
+    },
+    "Model Load Stability": {
+      "status": "PASS",
+      "tests_run": 9,
+      "passed": 9,
+      "failed": 0,
+      "errors": 0,
+      "success": true
+    },
+    "Adversarial Input Handling": {
+      "status": "FAIL",
+      "tests_run": 18,
+      "passed": 15,
+      "failed": 0,
+      "errors": 3,
+      "success": false
+    },
+    "Stress Mode": {
+      "status": "FAIL",
+      "tests_run": 10,
+      "passed": 8,
+      "failed": 2,
+      "errors": 0,
+      "success": false
+    },
+    "Metrics Logging": {
+      "status": "FAIL",
+      "tests_run": 8,
+      "passed": 6,
+      "failed": 1,
+      "errors": 1,
+      "success": false
+    }
+  },
+  "summary": {
+    "total_suites": 10,
+    "passed_suites": 5,
+    "failed_suites": 5
+  }
+}
