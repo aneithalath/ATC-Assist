@@ -1,7 +1,7 @@
 """
 train_controller.py
 Top-level orchestrator for PHX Local Controller AI training pipeline.
-Steps 3–6: Trace processing, feature construction, model training, and output.
+Steps 3-6: Trace processing, feature construction, model training, and output.
 """
 import os
 import sys
@@ -66,7 +66,7 @@ def main():
     # Import trace_processor and runways
     from scripts.trace_processor import run_trace_processing
     from runways import RUNWAYS
-    weather_csv = os.path.join(PROJECT_ROOT, 'weather_data', 'kphx_weather_filtered.csv')
+    weather_csv = os.path.join(PROJECT_ROOT, 'weather_data', 'kphx_weather.csv')
     feature_csv = os.path.join(PROJECT_ROOT, 'logs', 'feature.csv')
 
     USE_CACHED_FEATURES = False # set True only when debugging
